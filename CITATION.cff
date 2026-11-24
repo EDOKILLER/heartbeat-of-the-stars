@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, and credit the data providers listed in README.md."
+title: "Heartbeat of the Stars (Il battito delle stelle): asteroseismology at home: νmax, Δν, mass, radius and age of oscillating stars from Kepler and TESS"
+authors:
+  - family-names: Battistel
+    given-names: Edoardo
+version: "1.16"
+date-released: 2026-11-19
+license: BSD-3-Clause
+repository-code: "https://github.com/EDOKILLER/heartbeat-of-the-stars"
+keywords:
+  - asteroseismology
+  - Kepler
+  - TESS
+  - red giants
+  - light curves
+  - solar-like oscillations

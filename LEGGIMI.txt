@@ -1,0 +1,176 @@
+IL BATTITO DELLE STELLE 1.16 – astrosismologia con Kepler e TESS
+© 2026 Edoardo Battistel
+
+CHE COSA FA
+Le stelle come il Sole e le giganti rosse vibrano: la loro luce cambia di poche parti per milione,
+con periodi da minuti (stelle tipo Sole) a giorni (giganti). Il programma:
+ 1. trova la stella (nome, KIC, TIC, coordinate) nel catalogo TIC di MAST;
+ 2. scarica da MAST le curve di luce Kepler (30 min o 1 min) o TESS (2 min, 20 s, oppure dalle
+    immagini a pieno campo TESS-SPOC/QLP) e le tiene in ~/.battito_stelle/cache;
+ 3. le pulisce (punti cattivi, andamenti lenti) e le unisce;
+ 4. calcola lo spettro di potenza e trova:
+      νmax = la frequenza dove le oscillazioni sono più forti (la «gobba»);
+      Δν   = la distanza regolare tra i picchi (il «pettine»);
+ 5. prende la temperatura e la metallicità (APOKASC, Gaia DR3, TIC) e con le relazioni di scala
+    ricava massa, raggio, gravità, densità e luminosità;
+ 6. con le tracce evolutive MIST stima l'età e la fase (ramo delle giganti o «red clump»);
+    la prima volta scarica circa 110 MB per la metallicità della stella (poi restano in cache);
+ 7. confronta con i cataloghi APOKASC-3, APOKASC-2 e Yu et al. 2018 (stelle Kepler già studiate);
+ 8. scrive i risultati e crea il suono della stella.
+
+COME SI USA
+ - Scrivi una stella per riga nella casella in alto (o scegli dal menu «Esempi») e premi «Analizza».
+   Esempi: KIC 757137 (gigante rossa), KIC 11026764 «Gemma» (subgigante), 16 Cyg A (gemella del Sole).
+   Si può scrivere anche una cartella con file FITS di curve di luce già scaricati.
+ - «Trova stelle…»: sceglie stelle adatte da analizzare.
+     Da dove: le circa 16 000 giganti rosse di Kepler di Yu et al. 2018 (oscillazioni già misurate),
+     le giganti di APOKASC-3 (con l'età) oppure un elenco di stelle famose (stelle tipo Sole, stelle con
+     pianeti, stelle di TESS). Filtri facoltativi: fase (ramo delle giganti o red clump), νmax da…a…,
+     magnitudine (più brillanti di…), età da…a…, quante e in che ordine. Si selezionano le stelle
+     nell'elenco (Ctrl o Maiuscolo per più di una, doppio clic per una sola) e si aggiungono alla casella.
+     Il catalogo si scarica la prima volta (qualche MB) e resta in ~/.battito_stelle/cache/cataloghi.
+ - Missione: «Automatica» usa Kepler se la stella c'è, altrimenti TESS.
+ - Cadenza: «Automatica» usa i dati a 30 min per le giganti e quelli a 1 min (se ci sono) per le stelle
+   con log g ≥ 3,5 (stelle tipo Sole e subgiganti). Le stelle tipo Sole hanno νmax di migliaia di µHz:
+   con i dati a 30 min (limite 283 µHz) non si vedono.
+ - Teff e [Fe/H] a mano: se li scrivi, hanno la precedenza su quelli dei cataloghi.
+ - Dimensione testo: da 100 % a 200 % (si ricorda la scelta).
+ - Due schede: «Stelle e risultati» (stelle, opzioni, registro) e «Grafici» (un grafico alla volta,
+   grande: Curva di luce, Spettro, Modi attorno a νmax, Diagramma échelle, Autocorrelazione, Tutti
+   insieme). Finita un'analisi, il programma passa da solo ai grafici.
+ - Sotto il grafico: «Vista iniziale», «Indietro», «Avanti», «Sposta», «Ingrandisci un riquadro»,
+   «Salva immagine…».
+ - «Ascolta la stella»: la curva di luce viene filtrata attorno a νmax e accelerata finché νmax diventa
+   una nota udibile (circa 220 Hz per una gigante con νmax 30 µHz, più acuta per le stelle tipo Sole).
+ - Il pulsante «Ferma» interrompe dopo il passo in corso.
+
+RISULTATI (in inglese) in ~/Scrivania/Astronomia/Battito_stelle/<stella>/
+ <stella>_sheet.pdf / .png       scheda: curva di luce, spettro con fondo, modi attorno a νmax,
+                                 autocorrelazione (Δν), diagramma échelle, tabella dei risultati
+ <stella>_results.csv            i numeri
+ <stella>_power_spectrum.csv     lo spettro di potenza
+ <stella>_light_curve.csv        la curva di luce pulita (ppm)
+ <stella>_sound.wav              il suono vero (curva di luce accelerata)
+ <stella>_modes.wav              l'accordo dei modi (note pulite)
+ all_results.csv                 una riga per ogni stella analizzata (nella cartella principale)
+
+COME LEGGERE IL GIUDIZIO
+ YES (sicuro)        il pettine dei modi è chiaro: νmax e Δν affidabili.
+ PROBABLE            la gobba si vede bene ma il pettine è debole (di solito pochi dati):
+                     νmax affidabile, Δν da controllare.
+ DOUBTFUL            segnale debole: i numeri vanno presi con molta cautela.
+Le masse dalle relazioni di scala senza correzioni possono essere un po' più alte (qualche %) per le
+giganti rosse: il confronto con APOKASC (che usa le correzioni) lo mostra.
+
+DA TERMINALE
+ BattitoStelle --analizza "KIC 757137" "16 Cyg A"  [--missione kepler|tess] [--cadenza lunga|corta|veloce]
+               [--teff 4750] [--feh 0.1] [--senza-eta] [--senza-suono] [--cartella DIR]
+ BattitoStelle --autotest        prove senza rete
+ BattitoStelle --diagnostica     prova degli archivi in rete (scrive diagnostica.txt)
+
+ARCHIVI USATI
+ MAST (STScI): catalogo TIC, curve di luce Kepler e TESS. Gaia DR3 (ESA). VizieR, specchio di Harvard
+ (APOKASC-3 J/ApJS/276/69, APOKASC-2 J/ApJS/239/32, Yu+2018 J/ApJS/236/42). MIST v1.2 (Harvard).
+ Ogni richiesta ha un tempo massimo; se un archivio non risponde il programma va avanti senza.
+
+NOVITÀ DELLA 1.1 (17/11/2026)
+ - Cataloghi: per ciascuno il registro dice «trovata», «stella non presente» o il problema; se VizieR
+   risponde in modo strano riprova (nella prova della 1.0 su KIC 757137 il confronto era rimasto vuoto).
+ - Temperatura: prima APOKASC, Yu+2018 e TIC, poi Gaia GSP-Spec (non calibrato: per le giganti può
+   dare temperature più basse di 100-200 K, e quindi masse più basse).
+
+NOVITÀ DELLA 1.2 (17/11/2026)
+ - Stelle molto brillanti (es. 16 Cyg A/B): i dati Kepler a 1 min con apertura speciale si trovano
+   cercando per posizione.
+ - νmax atteso da log g e Teff del catalogo TIC: la ricerca avviene tra 1/4 e 4 volte quel valore;
+   se è oltre il limite dei dati (es. stella tipo Sole con soli dati a 30 min) il programma lo dice e
+   non inventa un risultato.
+ - Con segnale «dubbio» niente massa, raggio, età e suono (solo spettro e scheda).
+ - La fase misurata dai cataloghi (APOKASC o Yu+2018: RGB / clump) vincola l'età MIST.
+ - Scaricamento di 4 file alla volta, con l'avanzamento scritto nel registro.
+
+NOVITÀ DELLA 1.3 (17/11/2026)
+ - I tratti rumorosi della curva di luce contano meno (pesi 1/σ² in blocchi di 10 giorni): 16 Cyg A
+   passa da νmax 1865 (sbagliato) a 2227 µHz (letteratura 2188).
+ - Δν: se l'autocorrelazione è ingannata dai modi misti (subgiganti), il programma usa il passo che
+   allinea meglio le creste del diagramma échelle: «Gemma» passa da Δν 48,1 a 50,4 (letteratura 50,5).
+ - Analisi molto più veloce sui dati a 1 minuto (16 Cyg A: da 9 minuti a pochi secondi dopo lo
+   scaricamento): lo spettro di lavoro viene raggruppato (circa 250 punti per Δν).
+ - Gaussiana dell'inviluppo con larghezza limitata a un fattore 1,7 da quella attesa.
+
+NOVITÀ DELLA 1.4 (19/11/2026)
+ - Pulizia molto più veloce con i dati a 1 minuto: l'andamento lento (8 giorni) viene calcolato su una
+   griglia di mezz'ora e riportato sui punti veri. 16 Cyg A e «Gemma» con i dati già in cache: da 6-9
+   minuti a meno di un minuto.
+
+NOVITÀ DELLA 1.5 (19/11/2026)
+ - νmax atteso anche per le giganti e le subgiganti (il catalogo TIC dà il raggio ma non log g):
+   νmax ≈ 3090 · M / R² · (Teff/5777)^-0,5 con M ipotizzata 1,2 M☉. HD 221416 (TOI-197) con la 1.4
+   dava un falso νmax di 12,9 µHz (strutture strumentali di TESS a bassa frequenza).
+ - Controllo di coerenza: se il raggio ricavato dalle oscillazioni è più di 1,6 volte diverso da quello
+   del catalogo (da Gaia), il risultato diventa «dubbio» con la spiegazione.
+ - Età MIST con una griglia più fitta (8 tracce intermedie tra due masse, interpolate fase per fase):
+   prima l'incertezza poteva uscire zero.
+
+NOVITÀ DELLA 1.6 (19/11/2026)
+ - Con la dimensione del testo crescono anche frecce delle tendine, quadratini delle spunte, barre di
+   scorrimento, barra di avanzamento e pulsanti; il grafico cresce con la stessa proporzione.
+ - Al posto della barra di matplotlib (icone minuscole) ci sono pulsanti in italiano sotto il grafico.
+ - Nessun simbolo speciale nei pulsanti (su Linux i caratteri a colori possono far chiudere la finestra).
+
+NOVITÀ DELLA 1.7 (19/11/2026)
+ - La finestra si apre ingrandita e non può uscire dallo schermo (nella 1.6 a 150 % le opzioni e i
+   pulsanti a destra erano tagliati).
+ - Le file di pulsanti (sotto il grafico e in basso) vanno a capo quando lo spazio non basta.
+
+NOVITÀ DELLA 1.8 (19/11/2026)
+ - Opzioni: ogni opzione (etichetta + comando) va a capo intera; nella 1.7 «Teff a mano» restava
+   tagliato a destra accanto alla tendina della cadenza. Testi delle tendine più corti; la spunta
+   «Età con MIST» scarica circa 110 MB la prima volta per ogni metallicità.
+
+NOVITÀ DELLA 1.9 (19/11/2026)
+ - Due schede: «Stelle e risultati» e «Grafici», con un grafico alla volta a tutta grandezza (idea di
+   Edoardo: nella 1.8 a 200 % il grafico spariva). Il grafico scelto si ricorda.
+ - Scritte del grafico in proporzione alla densità vera dello schermo (prima erano minuscole).
+ - Comandi in fila disposti a coordinate calcolate: non possono più uscire dalla finestra; la zona in
+   basso resta sempre visibile.
+
+NOVITÀ DELLA 1.10 (19/11/2026)
+ - Le scritte del grafico crescono con la «Dimensione testo» (nella 1.9 a 200 % erano più piccole che
+   a 150 %: matplotlib adatta da solo i dpi alla densità dello schermo e annullava la regolazione).
+ - «Analizza», «Ferma» ed «Esempi» in fila sotto la casella delle stelle: più spazio per il registro.
+
+NOVITÀ DELLA 1.11 (19/11/2026)
+ - Due suoni. «Ascolta la stella»: la curva di luce vera accelerata. Le oscillazioni delle giganti e
+   delle stelle tipo Sole sono eccitate a caso dalla convezione (come una campana colpita di continuo da
+   granelli di sabbia): si sente un fruscio che pulsa, non note pulite. «Ascolta i modi»: i picchi dei
+   modi trovati nello spettro suonati come note pulite, con gli stessi rapporti di frequenza, che salgono
+   e scendono lentamente: si sente il «pettine» come un accordo.
+ - Suoni più acuti (νmax → circa 600 Hz per una gigante con νmax 30 µHz, circa 2 kHz per 16 Cyg A):
+   nella 1.10 a 220 Hz le casse del portatile davano un brontolio.
+ - Più spazio tra i grafici di «Tutti insieme».
+
+NOVITÀ DELLA 1.12 (19/11/2026)
+ - Grafico «Curva di luce»: punti più grandi (prima erano di un pixel, quasi invisibili sugli schermi
+   ad alta densità) e, sotto, un tratto ingrandito lungo circa 40 oscillazioni con i punti uniti: si vede
+   la stella che pulsa (KIC 757137: un'oscillazione ogni ~9 ore). Nelle stelle tipo Sole le oscillazioni
+   sono di pochi milionesimi e nel tratto si vede soprattutto il rumore: si «sentono» nello spettro.
+
+NOVITÀ DELLA 1.13 (19/11/2026)
+ - Curva di luce di nuovo in un solo grafico (scelta di Edoardo: senza il tratto ingrandito della 1.12),
+   con i puntini azzurri più grandi e più pieni.
+
+NOVITÀ DELLA 1.14 (19/11/2026)
+ - Curva di luce ingrandita: il grafico si ridisegna con tutti i punti del tratto visibile (prima se ne
+   mostrava uno ogni tanto e ingrandendo restavano pochi puntini sparsi); con pochi punti visibili i
+   puntini diventano più grandi e sono uniti da una linea sottile, così si vede l'oscillazione.
+
+NOVITÀ DELLA 1.15 (19/11/2026)
+ - Pulsante «Trova stelle…» (richiesta di Edoardo: «come trovo altre stelle?»): giganti di Kepler da
+   Yu+2018 o APOKASC-3 con filtri, oppure un elenco di stelle famose.
+
+NOVITÀ DELLA 1.16 (19/11/2026)
+ - Finestra «Trova stelle»: le tendine sono larghe quanto la loro voce più lunga (prima l'elenco a
+   discesa tagliava «Ramo delle giganti (RGB)» e «Red clump (bruciano elio)»), e le colonne dell'elenco
+   sono larghe quanto il titolo o il valore più lungo, misurati con il carattere vero (crescono con
+   «Dimensione testo»). Lo stesso per le tendine Missione, Cadenza e Dimensione testo.
